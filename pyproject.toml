@@ -1,0 +1,25 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.backends.legacy:build"
+
+[project]
+name = "wordsearch"
+version = "0.1.0"
+description = "Cognitive science word search strategy comparison framework"
+readme = "README.md"
+requires-python = ">=3.8"
+dependencies = [
+    "pandas>=1.3.0",
+    "numpy>=1.20.0",
+    "matplotlib>=3.3.0",
+    "Pillow>=8.0.0",
+    "tqdm",
+    "streamlit>=1.30.0",
+]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["wordsearch*"]
+
+[tool.setuptools.package-data]
+"wordsearch.generator" = ["*.txt"]

@@ -2,8 +2,8 @@
 Example usage and testing of word search strategies.
 """
 
-from Wordsearch_Generator import WordsearchGenerator
-from strategies import (
+from wordsearch.generator import WordsearchGenerator
+from wordsearch.strategies import (
     BruteForceStrategy,
     OrderedSearchStrategy,
     UncommonLetterSearchStrategy,
@@ -11,7 +11,7 @@ from strategies import (
     PatchSearchStrategy,
     RandomToOrderedStrategy
 )
-from solver import Solver, compare_strategies
+from wordsearch.solver import Solver, compare_strategies
 
 
 def main():
