@@ -18,29 +18,9 @@ class PatchSearchStrategy(Strategy):
     3. Check if any substring appears in any word from the word bank
     4. When a match is found, verify the complete word at that location
     5. Continue through all patches until all words are found
-    
-    This strategy mimics focused attention on small regions of the puzzle,
-    similar to how humans might scan a wordsearch by looking at chunks
-    rather than individual cells.
-    
-    Parameters:
-        patch_size: Size of each patch (default 4×4)
-        overlap: Whether patches should overlap (default True)
-    
-    Performance Characteristics:
-    - Reduces search space by focusing on local regions
-    - More efficient than random sampling for dense puzzles
-    - May need multiple passes if patches don't overlap
     """
     
     def __init__(self, patch_size: int = 4, overlap: bool = True):
-        """
-        Initialize patch search strategy.
-        
-        Args:
-            patch_size: Size of square patches to examine
-            overlap: Whether patches should overlap by 1 cell
-        """
         super().__init__()
         self.patch_size = patch_size
         self.overlap = overlap
@@ -61,6 +41,7 @@ class PatchSearchStrategy(Strategy):
             for c in range(patch_col, patch_end_col):
                 for length in range(2, self.patch_size + 1):
                     if c + length <= patch_end_col:
+                        self.cells_examined += length  # Track cognitive load of reading these cells
                         substr = ''.join(grid[r][c:c + length])
                         substrings.add(substr)
                         substrings.add(substr[::-1])
@@ -70,6 +51,7 @@ class PatchSearchStrategy(Strategy):
             for r in range(patch_row, patch_end_row):
                 for length in range(2, self.patch_size + 1):
                     if r + length <= patch_end_row:
+                        self.cells_examined += length  # Track cognitive load of reading these cells
                         substr = ''.join(grid[r + i][c] for i in range(length))
                         substrings.add(substr)
                         substrings.add(substr[::-1])
@@ -80,6 +62,7 @@ class PatchSearchStrategy(Strategy):
                 # Down-right diagonal
                 for length in range(2, self.patch_size + 1):
                     if r + length <= patch_end_row and c + length <= patch_end_col:
+                        self.cells_examined += length  # Track cognitive load
                         substr = ''.join(grid[r + i][c + i] for i in range(length))
                         substrings.add(substr)
                         substrings.add(substr[::-1])
@@ -87,6 +70,7 @@ class PatchSearchStrategy(Strategy):
                 # Down-left diagonal
                 for length in range(2, self.patch_size + 1):
                     if r + length <= patch_end_row and c - length + 1 >= patch_col:
+                        self.cells_examined += length  # Track cognitive load
                         substr = ''.join(grid[r + i][c - i] for i in range(length))
                         substrings.add(substr)
                         substrings.add(substr[::-1])
@@ -127,29 +111,37 @@ class PatchSearchStrategy(Strategy):
                     
                     if word_found_in_patch:
                         # Try to find the complete word in the entire grid
-                        # Check all positions and directions
+                        word_found_in_grid = False
+                        
                         for row in range(size):
-                            for col in range(size):
-                                for direction in self.DIRECTIONS:
-                                    if self._check_word_at_position(grid, word, row, col, direction):
-                                        dr, dc = direction
-                                        end_row = row + dr * (len(word) - 1)
-                                        end_col = col + dc * (len(word) - 1)
-                                        
-                                        found_words[word] = WordPosition(
-                                            word=word,
-                                            start_row=row,
-                                            start_col=col,
-                                            end_row=end_row,
-                                            end_col=end_col,
-                                            direction=direction
-                                        )
-                                        remaining_words.remove(word)
-                                        break
-                                if word not in remaining_words:
-                                    break
-                            if word not in remaining_words:
+                            if word_found_in_grid:
                                 break
+                                
+                            for col in range(size):
+                                if word_found_in_grid:
+                                    break
+                                
+                                # First letter check optimization
+                                self.cells_examined += 1
+                                if grid[row][col] == word[0]:
+                                    
+                                    for direction in self.DIRECTIONS:
+                                        if self._check_word_at_position(grid, word, row, col, direction, start_index=1):
+                                            dr, dc = direction
+                                            end_row = row + dr * (len(word) - 1)
+                                            end_col = col + dc * (len(word) - 1)
+                                            
+                                            found_words[word] = WordPosition(
+                                                word=word,
+                                                start_row=row,
+                                                start_col=col,
+                                                end_row=end_row,
+                                                end_col=end_col,
+                                                direction=direction
+                                            )
+                                            remaining_words.remove(word)
+                                            word_found_in_grid = True
+                                            break
         
         end_time = time.time()
         

@@ -20,25 +20,11 @@ class RandomToOrderedStrategy(Strategy):
     2. Phase 2 (Ordered): If word not found within time limit, switch to systematic
        - Use OrderedSearchStrategy approach (horizontal → vertical → diagonal)
        - Guarantees finding remaining words
-    
-    This strategy models adaptive human behavior: starting with intuitive random
-    attempts and falling back to systematic search when initial attempts fail.
-    
-    Parameters:
-        random_time_limit: Seconds to spend on random search per word (default 0.001)
-        max_random_attempts: Maximum random attempts per word (default 100)
-        seed: Random seed for reproducibility
-    
-    Performance Characteristics:
-    - Fast for puzzles with easy-to-find words
-    - Graceful degradation: switches to systematic when random fails
-    - Models human problem-solving: intuition first, then systematic
-    - Balances speed (random) with completeness (ordered)
     """
     
     def __init__(self, random_time_limit: float = 0.001, 
                  max_random_attempts: int = 100,
-                 seed: int = None):
+                 seed: int = 42):
         """
         Initialize hybrid strategy.
         
@@ -91,20 +77,23 @@ class RandomToOrderedStrategy(Strategy):
             col = random.randint(0, size - 1)
             direction = random.choice(self.DIRECTIONS)
             
-            if self._check_word_at_position(grid, word, row, col, direction):
-                dr, dc = direction
-                end_row = row + dr * (len(word) - 1)
-                end_col = col + dc * (len(word) - 1)
-                
-                position = WordPosition(
-                    word=word,
-                    start_row=row,
-                    start_col=col,
-                    end_row=end_row,
-                    end_col=end_col,
-                    direction=direction
-                )
-                return (True, position)
+            # First letter check and cognitive load tracking
+            self.cells_examined += 1
+            if grid[row][col] == word[0]:
+                if self._check_word_at_position(grid, word, row, col, direction, start_index=1):
+                    dr, dc = direction
+                    end_row = row + dr * (len(word) - 1)
+                    end_col = col + dc * (len(word) - 1)
+                    
+                    position = WordPosition(
+                        word=word,
+                        start_row=row,
+                        start_col=col,
+                        end_row=end_row,
+                        end_col=end_col,
+                        direction=direction
+                    )
+                    return (True, position)
             
             attempts += 1
         
@@ -122,24 +111,31 @@ class RandomToOrderedStrategy(Strategy):
             self.DIAGONAL_DIRECTIONS
         ]
         
-        for direction_group in direction_groups:
-            for direction in direction_group:
-                for row in range(size):
-                    for col in range(size):
-                        if self._check_word_at_position(grid, word, row, col, direction):
-                            dr, dc = direction
-                            end_row = row + dr * (len(word) - 1)
-                            end_col = col + dc * (len(word) - 1)
-                            
-                            position = WordPosition(
-                                word=word,
-                                start_row=row,
-                                start_col=col,
-                                end_row=end_row,
-                                end_col=end_col,
-                                direction=direction
-                            )
-                            return (True, position)
+        # Inverted loop: scan positions first, then apply direction groups
+        for row in range(size):
+            for col in range(size):
+                
+                # Examine cell exactly once for this word search
+                self.cells_examined += 1
+                if grid[row][col] == word[0]:
+                    
+                    # Only if first letter matches do we test directions
+                    for direction_group in direction_groups:
+                        for direction in direction_group:
+                            if self._check_word_at_position(grid, word, row, col, direction, start_index=1):
+                                dr, dc = direction
+                                end_row = row + dr * (len(word) - 1)
+                                end_col = col + dc * (len(word) - 1)
+                                
+                                position = WordPosition(
+                                    word=word,
+                                    start_row=row,
+                                    start_col=col,
+                                    end_row=end_row,
+                                    end_col=end_col,
+                                    direction=direction
+                                )
+                                return (True, position)
         
         return (False, None)
     

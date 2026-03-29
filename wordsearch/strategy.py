@@ -123,7 +123,8 @@ class Strategy(ABC):
         pass
     
     def _check_word_at_position(self, grid: List[List[str]], word: str,
-                                row: int, col: int, direction: Tuple[int, int]) -> bool:
+                                row: int, col: int, direction: Tuple[int, int],
+                                start_index: int = 0) -> bool:
         """
         Helper method: Check if a word exists at a specific position and direction.
         
@@ -133,6 +134,7 @@ class Strategy(ABC):
             row: Starting row
             col: Starting column
             direction: Direction tuple (row_delta, col_delta)
+            start_index: Which letter of the word to start checking from (default 0)
             
         Returns:
             True if word is found at this position/direction
@@ -140,20 +142,22 @@ class Strategy(ABC):
         dr, dc = direction
         size = len(grid)
         
-        # Check bounds
+        # Check bounds based on the full word length
         end_row = row + dr * (len(word) - 1)
         end_col = col + dc * (len(word) - 1)
         
         if not (0 <= end_row < size and 0 <= end_col < size):
             return False
         
-        # Check each letter
-        for i, letter in enumerate(word):
+        # Check each letter starting from start_index
+        for i in range(start_index, len(word)):
             r = row + dr * i
             c = col + dc * i
+            
+            # Count this cell examination
             self.cells_examined += 1
             
-            if grid[r][c] != letter:
+            if grid[r][c] != word[i]:
                 return False
         
         return True

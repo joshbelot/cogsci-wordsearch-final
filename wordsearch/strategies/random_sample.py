@@ -19,21 +19,9 @@ class RandomSampleStrategy(Strategy):
     3. For each random string, scan the word bank for overlap > 1 letter
     4. If overlap found, try to extend the match to find the full word
     5. Continue until max attempts reached or all words found
-    
-    This models an exploratory search pattern that looks for partial
-    matches before committing to full word verification.
-    
-    Parameters:
-        max_attempts: Maximum random samples before giving up
-        seed: Random seed for reproducibility (None for true randomness)
-    
-    Performance Characteristics:
-    - Fast average case for some puzzles
-    - May miss words with unlucky sampling
-    - Variable performance based on randomness
     """
     
-    def __init__(self, max_attempts: int = 2000, seed: int = None):
+    def __init__(self, max_attempts: int = 2000, seed: int = 42):
         """
         Initialize random sample strategy.
         
@@ -60,6 +48,8 @@ class RandomSampleStrategy(Strategy):
             if not (0 <= r < size and 0 <= c < size):
                 return None
             
+            # Track cognitive load of reading this cell
+            self.cells_examined += 1
             string += grid[r][c]
         
         return string
@@ -129,23 +119,28 @@ class RandomSampleStrategy(Strategy):
                             for search_col in range(size):
                                 if word_found:
                                     break
-                                for search_dir in self.DIRECTIONS:
-                                    if self._check_word_at_position(grid, word, search_row, search_col, search_dir):
-                                        dr, dc = search_dir
-                                        end_row = search_row + dr * (len(word) - 1)
-                                        end_col = search_col + dc * (len(word) - 1)
-                                        
-                                        found_words[word] = WordPosition(
-                                            word=word,
-                                            start_row=search_row,
-                                            start_col=search_col,
-                                            end_row=end_row,
-                                            end_col=end_col,
-                                            direction=search_dir
-                                        )
-                                        remaining_words.remove(word)
-                                        word_found = True
-                                        break
+                                
+                                # First letter check optimization
+                                self.cells_examined += 1
+                                if grid[search_row][search_col] == word[0]:
+                                    
+                                    for search_dir in self.DIRECTIONS:
+                                        if self._check_word_at_position(grid, word, search_row, search_col, search_dir, start_index=1):
+                                            dr, dc = search_dir
+                                            end_row = search_row + dr * (len(word) - 1)
+                                            end_col = search_col + dc * (len(word) - 1)
+                                            
+                                            found_words[word] = WordPosition(
+                                                word=word,
+                                                start_row=search_row,
+                                                start_col=search_col,
+                                                end_row=end_row,
+                                                end_col=end_col,
+                                                direction=search_dir
+                                            )
+                                            remaining_words.remove(word)
+                                            word_found = True
+                                            break
             
             attempts += 1
         

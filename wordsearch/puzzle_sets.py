@@ -45,10 +45,10 @@ def generate_a_puzzles():
         print(f"Size {size:3d}x{size}: {len(puzzles)} generated, {failed} failed")
 
     print(f"\nPart A total: {sum(len(v) for v in part_a_puzzles.values())} puzzles")
-    with open("data/part_a/puzzles.pkl", "wb") as f:
+    with open("../data/part_a/puzzles.pkl", "wb") as f:
         pickle.dump(part_a_puzzles, f)
 
-    with open("data/part_a/metadata.json", "w") as f:
+    with open("../data/part_a/metadata.json", "w") as f:
         json.dump(part_a_metadata, f, indent=2)
 
     print("Part A saved.")
@@ -109,11 +109,11 @@ def generate_b_puzzles():
 
     # Ensure the directory exists before writing
     import os
-    os.makedirs("data/part_b", exist_ok=True)
-    with open("data/part_b/puzzles.pkl", "wb") as f:
+    os.makedirs("../data/part_b", exist_ok=True)
+    with open("../data/part_b/puzzles.pkl", "wb") as f:
         pickle.dump(part_b_puzzles, f)
 
-    with open("data/part_b/metadata.json", "w") as f:
+    with open("../data/part_b/metadata.json", "w") as f:
         json.dump(part_b_metadata, f, indent=2)
 
     print("Part B saved.")
@@ -122,7 +122,7 @@ def generate_b_puzzles():
 
 def get_part_a(force_regenerate=False):
     """Load Part A puzzles from disk, generating them first if needed."""
-    path = "data/part_a/puzzles.pkl"
+    path = "../data/part_a/puzzles.pkl"
     if not os.path.exists(path) or force_regenerate:
         generate_a_puzzles()
     with open(path, "rb") as f:
@@ -131,7 +131,7 @@ def get_part_a(force_regenerate=False):
     
 def get_part_b(force_regenerate=False):
     """Load Part B puzzles from disk, generating them first if needed."""
-    path = "data/part_b/puzzles.pkl"
+    path = "../data/part_b/puzzles.pkl"
     if not os.path.exists(path) or force_regenerate:
         generate_b_puzzles()
     with open(path, "rb") as f:

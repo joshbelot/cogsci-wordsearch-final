@@ -53,6 +53,7 @@ class BruteForceStrategy(Strategy):
         for word in word_bank:
             word_found = False
             
+            # In brute_force.py
             # Try every position in the grid
             for row in range(size):
                 if word_found:
@@ -62,24 +63,29 @@ class BruteForceStrategy(Strategy):
                     if word_found:
                         break
                     
-                    # Try every direction
-                    for direction in self.DIRECTIONS:
-                        if self._check_word_at_position(grid, word, row, col, direction):
-                            # Found the word! Record its position
-                            dr, dc = direction
-                            end_row = row + dr * (len(word) - 1)
-                            end_col = col + dc * (len(word) - 1)
+                    # Look at the cell exactly once for this word
+                    self.cells_examined += 1
+                    if grid[row][col] == word[0]:
+                        
+                        # Only check directions if the first letter matches
+                        for direction in self.DIRECTIONS:
+                            # Pass start_index=1 so we don't re-check/re-count the first letter
+                            if self._check_word_at_position(grid, word, row, col, direction, start_index=1):
+                                # Found the word! Record its position
+                                dr, dc = direction
+                                end_row = row + dr * (len(word) - 1)
+                                end_col = col + dc * (len(word) - 1)
                             
-                            found_words[word] = WordPosition(
-                                word=word,
-                                start_row=row,
-                                start_col=col,
-                                end_row=end_row,
-                                end_col=end_col,
-                                direction=direction
-                            )
-                            word_found = True
-                            break
+                                found_words[word] = WordPosition(
+                                    word=word,
+                                    start_row=row,
+                                    start_col=col,
+                                    end_row=end_row,
+                                    end_col=end_col,
+                                    direction=direction
+                                )
+                                word_found = True
+                                break
         
         end_time = time.time()
         

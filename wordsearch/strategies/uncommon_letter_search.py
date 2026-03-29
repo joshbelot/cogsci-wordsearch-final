@@ -19,20 +19,6 @@ class UncommonLetterSearchStrategy(Strategy):
        b. Find all positions of that letter in the grid
        c. For each position, try all 8 directions
        d. Check if the word matches at that position/direction
-    
-    This models human behavior: recognizing that letters like Q, Z, X, J
-    are rare and using them as anchor points for searching.
-    
-    Letter Rarity Ranking:
-    Calculated from the word corpus used by the generator. Rarity scores
-    are computed as the inverse of letter frequency in the corpus, so
-    rare letters (Q, Z, X, J, etc.) get higher scores.
-    
-    Performance Characteristics:
-    - More efficient than brute force
-    - Models human cognitive strategy
-    - Reduces search space significantly for words with uncommon letters
-    - Uses corpus-specific letter frequencies rather than general statistics
     """
     
     def get_name(self) -> str:
@@ -85,6 +71,7 @@ class UncommonLetterSearchStrategy(Strategy):
                         break
                         
                     # Check if this cell has the rare letter
+                    self.cells_examined += 1  # Fix: Charge for the visual scan
                     if grid[row][col] == search_letter:
                         # Try all directions from this position
                         for direction in self.DIRECTIONS:
@@ -103,6 +90,8 @@ class UncommonLetterSearchStrategy(Strategy):
                             if not (0 <= end_row < size and 0 <= end_col < size):
                                 continue
                             
+                            # NOTE: Do NOT pass start_index=1 here, because start_row/col 
+                            # is the calculated beginning of the word, which hasn't been verified yet!
                             if self._check_word_at_position(grid, word, start_row, start_col, direction):
                                 # Found the word!
                                 found_words[word] = WordPosition(
