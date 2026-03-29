@@ -59,7 +59,7 @@ cd cogsci-wordsearch-final
 pip install -r requirements.txt
 ```
 
-Python 3.7 or higher is required.
+I used Python 3.13 for this project but other versions should work as well
 
 ### 2. Running the Streamlit Dashboard
 
